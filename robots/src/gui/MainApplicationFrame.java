@@ -186,7 +186,7 @@ public class MainApplicationFrame extends JFrame
                 options,                                 // массив кнопок
                 options[1]);                             // кнопка по умолчанию ("Нет")
 
-        // Обрабатываем результат
+        // Обрабатываем результа
         if (result == JOptionPane.YES_OPTION) {
             // Пользователь подтвердил выход
             Logger.debug("Приложение завершает работу");
