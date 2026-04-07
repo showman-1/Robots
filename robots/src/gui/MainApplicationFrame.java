@@ -3,6 +3,8 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -20,8 +22,15 @@ import log.Logger;
 public class MainApplicationFrame extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    private WindowStateManager stateManager;
+    private LogWindow logWindow;
+    private GameWindow gameWindow;
 
     public MainApplicationFrame() {
+        stateManager = new WindowStateManager();
+
+        stateManager.loadFromFile();
+
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
@@ -30,21 +39,32 @@ public class MainApplicationFrame extends JFrame
 
         setContentPane(desktopPane);
 
-        LogWindow logWindow = createLogWindow();
-        addWindow(logWindow);
+        logWindow = createLogWindow();
+        gameWindow = new GameWindow();
+        gameWindow.setSize(400, 400);
 
-        GameWindow gameWindow = new GameWindow();
-        gameWindow.setSize(400,  400);
+        stateManager.applyWindowState(logWindow, "logWindow");
+        stateManager.applyWindowState(gameWindow, "gameWindow");
+
+        addWindow(logWindow);
         addWindow(gameWindow);
 
         setJMenuBar(createMenuBar());
+
+        // Обработчик закрытия окна
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                exitApplication();
+            }
+        });
     }
 
     protected LogWindow createLogWindow()
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
-        logWindow.setLocation(10,10);
+        logWindow.setLocation(10, 10);
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
@@ -58,23 +78,15 @@ public class MainApplicationFrame extends JFrame
         frame.setVisible(true);
     }
 
-    /**
-     * Главный метод создания меню - собирает все части воедино
-     */
     private JMenuBar createMenuBar()
     {
         JMenuBar menuBar = new JMenuBar();
-
         menuBar.add(createFileMenu());
         menuBar.add(createLookAndFeelMenu());
         menuBar.add(createTestMenu());
-
         return menuBar;
     }
 
-    /**
-     * Создает меню "Файл" с пунктом "Выход"
-     */
     private JMenu createFileMenu()
     {
         JMenu fileMenu = new JMenu("Файл");
@@ -83,9 +95,6 @@ public class MainApplicationFrame extends JFrame
         return fileMenu;
     }
 
-    /**
-     * Создает пункт меню "Выход"
-     */
     private JMenuItem createExitMenuItem()
     {
         JMenuItem exitMenuItem = new JMenuItem("Выход", KeyEvent.VK_X);
@@ -93,9 +102,6 @@ public class MainApplicationFrame extends JFrame
         return exitMenuItem;
     }
 
-    /**
-     * Создает меню "Режим отображения" с пунктами смены темы
-     */
     private JMenu createLookAndFeelMenu()
     {
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
@@ -109,9 +115,6 @@ public class MainApplicationFrame extends JFrame
         return lookAndFeelMenu;
     }
 
-    /**
-     * Создает пункт меню "Системная схема"
-     */
     private JMenuItem createSystemLookAndFeelMenuItem()
     {
         JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
@@ -122,9 +125,6 @@ public class MainApplicationFrame extends JFrame
         return systemLookAndFeel;
     }
 
-    /**
-     * Создает пункт меню "Универсальная схема"
-     */
     private JMenuItem createCrossplatformLookAndFeelMenuItem()
     {
         JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
@@ -135,9 +135,6 @@ public class MainApplicationFrame extends JFrame
         return crossplatformLookAndFeel;
     }
 
-    /**
-     * Создает меню "Тесты" с тестовыми командами
-     */
     private JMenu createTestMenu()
     {
         JMenu testMenu = new JMenu("Тесты");
@@ -150,9 +147,6 @@ public class MainApplicationFrame extends JFrame
         return testMenu;
     }
 
-    /**
-     * Создает пункт меню "Сообщение в лог"
-     */
     private JMenuItem createAddLogMessageMenuItem()
     {
         JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
@@ -191,8 +185,21 @@ public class MainApplicationFrame extends JFrame
                 options[1]);
 
         if (result == JOptionPane.YES_OPTION) {
+            saveWindowStates();
+
             Logger.debug("Приложение завершает работу");
             System.exit(0);
         }
+    }
+
+    private void saveWindowStates()
+    {
+        if (logWindow != null) {
+            stateManager.saveWindowState(logWindow, "logWindow");
+        }
+        if (gameWindow != null) {
+            stateManager.saveWindowState(gameWindow, "gameWindow");
+        }
+        stateManager.saveToFile();
     }
 }
