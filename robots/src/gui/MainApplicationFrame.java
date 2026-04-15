@@ -19,39 +19,46 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import log.Logger;
 
-public class MainApplicationFrame extends JFrame
-{
+public class MainApplicationFrame extends JFrame {
+
     private final JDesktopPane desktopPane = new JDesktopPane();
     private WindowStateManager stateManager;
     private LogWindow logWindow;
     private GameWindow gameWindow;
+    private RobotCoordinatesWindow coordinatesWindow;
+    private RobotModel robotModel;
 
     public MainApplicationFrame() {
         stateManager = new WindowStateManager();
-
         stateManager.loadFromFile();
 
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
-                screenSize.width  - inset*2,
-                screenSize.height - inset*2);
+                screenSize.width - inset * 2,
+                screenSize.height - inset * 2);
 
         setContentPane(desktopPane);
 
+        robotModel = new RobotModel();
+
         logWindow = createLogWindow();
-        gameWindow = new GameWindow();
+        gameWindow = new GameWindow(robotModel);
         gameWindow.setSize(400, 400);
+
+        coordinatesWindow = new RobotCoordinatesWindow(robotModel);
+        coordinatesWindow.setSize(250, 180);
 
         stateManager.applyWindowState(logWindow, "logWindow");
         stateManager.applyWindowState(gameWindow, "gameWindow");
+        stateManager.applyWindowState(coordinatesWindow, "coordinatesWindow");
 
         addWindow(logWindow);
         addWindow(gameWindow);
+        addWindow(coordinatesWindow);
 
         setJMenuBar(createMenuBar());
 
-        // Обработчик закрытия окна
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
@@ -61,8 +68,7 @@ public class MainApplicationFrame extends JFrame
         });
     }
 
-    protected LogWindow createLogWindow()
-    {
+    protected LogWindow createLogWindow() {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
         logWindow.setLocation(10, 10);
         logWindow.setSize(300, 800);
@@ -72,14 +78,12 @@ public class MainApplicationFrame extends JFrame
         return logWindow;
     }
 
-    protected void addWindow(JInternalFrame frame)
-    {
+    protected void addWindow(JInternalFrame frame) {
         desktopPane.add(frame);
         frame.setVisible(true);
     }
 
-    private JMenuBar createMenuBar()
-    {
+    private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(createFileMenu());
         menuBar.add(createLookAndFeelMenu());
@@ -87,23 +91,20 @@ public class MainApplicationFrame extends JFrame
         return menuBar;
     }
 
-    private JMenu createFileMenu()
-    {
+    private JMenu createFileMenu() {
         JMenu fileMenu = new JMenu("Файл");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         fileMenu.add(createExitMenuItem());
         return fileMenu;
     }
 
-    private JMenuItem createExitMenuItem()
-    {
+    private JMenuItem createExitMenuItem() {
         JMenuItem exitMenuItem = new JMenuItem("Выход", KeyEvent.VK_X);
         exitMenuItem.addActionListener((event) -> exitApplication());
         return exitMenuItem;
     }
 
-    private JMenu createLookAndFeelMenu()
-    {
+    private JMenu createLookAndFeelMenu() {
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
@@ -115,8 +116,7 @@ public class MainApplicationFrame extends JFrame
         return lookAndFeelMenu;
     }
 
-    private JMenuItem createSystemLookAndFeelMenuItem()
-    {
+    private JMenuItem createSystemLookAndFeelMenuItem() {
         JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
         systemLookAndFeel.addActionListener((event) -> {
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -125,8 +125,7 @@ public class MainApplicationFrame extends JFrame
         return systemLookAndFeel;
     }
 
-    private JMenuItem createCrossplatformLookAndFeelMenuItem()
-    {
+    private JMenuItem createCrossplatformLookAndFeelMenuItem() {
         JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
         crossplatformLookAndFeel.addActionListener((event) -> {
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -135,20 +134,17 @@ public class MainApplicationFrame extends JFrame
         return crossplatformLookAndFeel;
     }
 
-    private JMenu createTestMenu()
-    {
+    private JMenu createTestMenu() {
         JMenu testMenu = new JMenu("Тесты");
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(
                 "Тестовые команды");
 
         testMenu.add(createAddLogMessageMenuItem());
-
         return testMenu;
     }
 
-    private JMenuItem createAddLogMessageMenuItem()
-    {
+    private JMenuItem createAddLogMessageMenuItem() {
         JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
         addLogMessageItem.addActionListener((event) -> {
             Logger.debug("Новая строка");
@@ -156,23 +152,18 @@ public class MainApplicationFrame extends JFrame
         return addLogMessageItem;
     }
 
-    private void setLookAndFeel(String className)
-    {
-        try
-        {
+    private void setLookAndFeel(String className) {
+        try {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(this);
-        }
-        catch (ClassNotFoundException | InstantiationException
-               | IllegalAccessException | UnsupportedLookAndFeelException e)
-        {
+        } catch (ClassNotFoundException | InstantiationException
+                 | IllegalAccessException | UnsupportedLookAndFeelException e) {
             // just ignore
         }
     }
 
-    private void exitApplication()
-    {
-        Object[] options = {"Да", "Нет"};
+    private void exitApplication() {
+        Object[] options = {"Да", "Нет", "Отмена"};
 
         int result = JOptionPane.showOptionDialog(
                 this,
@@ -186,19 +177,20 @@ public class MainApplicationFrame extends JFrame
 
         if (result == JOptionPane.YES_OPTION) {
             saveWindowStates();
-
             Logger.debug("Приложение завершает работу");
             System.exit(0);
         }
     }
 
-    private void saveWindowStates()
-    {
+    private void saveWindowStates() {
         if (logWindow != null) {
             stateManager.saveWindowState(logWindow, "logWindow");
         }
         if (gameWindow != null) {
             stateManager.saveWindowState(gameWindow, "gameWindow");
+        }
+        if (coordinatesWindow != null) {
+            stateManager.saveWindowState(coordinatesWindow, "coordinatesWindow");
         }
         stateManager.saveToFile();
     }
