@@ -3,31 +3,47 @@ package gui;
 import java.util.Properties;
 import javax.swing.JInternalFrame;
 
+/**
+ * Управляет сохранением и восстановлением состояния окон.
+ * Использует ConfigFileManager для работы с файлом и WindowStateHelper для работы с окнами.
+ */
 public class WindowStateManager {
 
     private Properties properties;
-    private WindowStateSaver saver;
-    private WindowStateLoader loader;
+    private ConfigFileManager fileManager;
+    private WindowStateHelper windowHelper;
 
     public WindowStateManager() {
         this.properties = new Properties();
-        this.saver = new WindowStateSaver();
-        this.loader = new WindowStateLoader();
+        this.fileManager = new ConfigFileManager();
+        this.windowHelper = new WindowStateHelper();
     }
 
+    /**
+     * Загружает настройки из файла
+     */
     public void loadFromFile() {
-        this.properties = loader.loadFromFile();
+        this.properties = fileManager.loadFromFile();
     }
 
+    /**
+     * Сохраняет настройки в файл
+     */
     public void saveToFile() {
-        saver.saveToFile(properties);
+        fileManager.saveToFile(properties);
     }
 
+    /**
+     * Сохраняет состояние одного окна
+     */
     public void saveWindowState(JInternalFrame frame, String windowKey) {
-        saver.saveWindowState(properties, frame, windowKey);
+        windowHelper.saveWindowState(properties, frame, windowKey);
     }
 
+    /**
+     * Восстанавливает состояние окна
+     */
     public void applyWindowState(JInternalFrame frame, String windowKey) {
-        loader.applyWindowState(properties, frame, windowKey);
+        windowHelper.applyWindowState(properties, frame, windowKey);
     }
 }
