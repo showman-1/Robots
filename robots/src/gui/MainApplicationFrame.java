@@ -163,7 +163,7 @@ public class MainApplicationFrame extends JFrame {
     }
 
     private void exitApplication() {
-        Object[] options = {"Да", "Нет", "Отмена"};
+        Object[] options = {"Да", "Нет"};
 
         int result = JOptionPane.showOptionDialog(
                 this,
