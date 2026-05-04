@@ -12,18 +12,14 @@ import javax.swing.JPanel;
 
 import model.RobotModel;
 
-/**
- * Визуализатор игры - только отображение, без логики движения
- */
 public class GameVisualizer extends JPanel {
 
     private RobotModel model;
-    private Runnable updateRequest;  // для запроса перерисовки от контроллера
+    private Runnable updateRequest;
 
     public GameVisualizer(RobotModel model) {
         this.model = model;
 
-        // Обработчик кликов мыши
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -34,16 +30,10 @@ public class GameVisualizer extends JPanel {
         setDoubleBuffered(true);
     }
 
-    /**
-     * Устанавливает callback для запроса перерисовки (вызывается контроллером)
-     */
     public void setUpdateRequest(Runnable updateRequest) {
         this.updateRequest = updateRequest;
     }
 
-    /**
-     * Запрашивает перерисовку (вызывается из контроллера)
-     */
     public void requestRedraw() {
         repaint();
     }

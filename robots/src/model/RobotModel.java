@@ -3,10 +3,6 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Модель робота - хранит состояние и управляет движением
- * Не зависит от GUI, может использоваться в любом контексте
- */
 public class RobotModel {
 
     private List<RobotModelListener> listeners = new ArrayList<>();
@@ -21,42 +17,26 @@ public class RobotModel {
     private static final double MAX_VELOCITY = 0.1;
     private static final double MAX_ANGULAR_VELOCITY = 0.001;
 
-    /**
-     * Добавляет слушателя (окно, которое хочет получать обновления)
-     */
     public void addListener(RobotModelListener listener) {
         listeners.add(listener);
     }
 
-    /**
-     * Удаляет слушателя
-     */
     public void removeListener(RobotModelListener listener) {
         listeners.remove(listener);
     }
 
-    /**
-     * Уведомляет всех слушателей об изменении состояния
-     */
     private void notifyListeners() {
         for (RobotModelListener listener : listeners) {
             listener.onRobotStateChanged(x, y, direction, targetX, targetY);
         }
     }
 
-    /**
-     * Устанавливает новую цель и оповещает слушателей
-     */
     public void setTarget(double targetX, double targetY) {
         this.targetX = targetX;
         this.targetY = targetY;
         notifyListeners();  // Оповещаем об изменении цели!
     }
 
-    /**
-     * Обновляет позицию робота на основе текущей цели
-     * @return true если робот достиг цели
-     */
     public boolean update() {
         double distance = distanceToTarget();
 
@@ -145,7 +125,6 @@ public class RobotModel {
         return value;
     }
 
-    // Геттеры
     public double getX() { return x; }
     public double getY() { return y; }
     public double getDirection() { return direction; }

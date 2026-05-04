@@ -17,10 +17,8 @@ public class GameWindow extends JInternalFrame {
         super("Игровое поле", true, true, true, true);
         visualizer = new GameVisualizer(model);
 
-        // Создаем контроллер, который будет управлять таймерами
         controller = new GameController(model, () -> visualizer.requestRedraw());
 
-        // Сообщаем визуализатору, как запрашивать перерисовку
         visualizer.setUpdateRequest(() -> visualizer.requestRedraw());
 
         JPanel panel = new JPanel(new BorderLayout());
