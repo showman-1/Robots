@@ -14,12 +14,12 @@ public class ConfigFileManager {
             ".robot_game_config.properties";
 
 
-    public Properties loadFromFile() {
+    public Properties load() {
         Properties properties = new Properties();
         File configFile = new File(CONFIG_FILE);
 
         if (!configFile.exists()) {
-            return properties;  // Файла нет - возвращаем пустые настройки
+            return properties;
         }
 
         try (FileInputStream in = new FileInputStream(configFile)) {
@@ -32,7 +32,7 @@ public class ConfigFileManager {
     }
 
 
-    public void saveToFile(Properties properties) {
+    public void save(Properties properties) {
         try (FileOutputStream out = new FileOutputStream(CONFIG_FILE)) {
             properties.store(out, "Robot Game Configuration");
         } catch (IOException e) {

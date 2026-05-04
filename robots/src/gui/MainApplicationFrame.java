@@ -30,7 +30,7 @@ public class MainApplicationFrame extends JFrame {
 
     public MainApplicationFrame() {
         stateManager = new WindowStateManager();
-        stateManager.loadFromFile();
+
 
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -192,6 +192,6 @@ public class MainApplicationFrame extends JFrame {
         if (coordinatesWindow != null) {
             stateManager.saveWindowState(coordinatesWindow, "coordinatesWindow");
         }
-        stateManager.saveToFile();
+
     }
 }

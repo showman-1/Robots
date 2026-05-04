@@ -5,33 +5,23 @@ import javax.swing.JInternalFrame;
 
 public class WindowStateManager {
 
-    private Properties properties;
-    private ConfigFileManager fileManager;
-    private WindowStateHelper windowHelper;
+    private Properties properties = new Properties();
+    private final ConfigFileManager fileManager = new ConfigFileManager();
+    private final WindowStateHelper windowHelper = new WindowStateHelper();
 
     public WindowStateManager() {
-        this.properties = new Properties();
-        this.fileManager = new ConfigFileManager();
-        this.windowHelper = new WindowStateHelper();
-    }
 
-
-    public void loadFromFile() {
-        this.properties = fileManager.loadFromFile();
-    }
-
-
-    public void saveToFile() {
-        fileManager.saveToFile(properties);
     }
 
 
     public void saveWindowState(JInternalFrame frame, String windowKey) {
         windowHelper.saveWindowState(properties, frame, windowKey);
+        fileManager.save(properties);
     }
 
 
     public void applyWindowState(JInternalFrame frame, String windowKey) {
+        this.properties = fileManager.load();
         windowHelper.applyWindowState(properties, frame, windowKey);
     }
 }
