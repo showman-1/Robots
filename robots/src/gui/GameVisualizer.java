@@ -1,37 +1,24 @@
 package gui;
 
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.JPanel;
+
+import model.RobotModel;
+
 public class GameVisualizer extends JPanel {
 
-    private final Timer timer = new Timer("GameTimer", true);
     private RobotModel model;
+    private Runnable updateRequest;
 
     public GameVisualizer(RobotModel model) {
         this.model = model;
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                EventQueue.invokeLater(() -> repaint());
-            }
-        }, 0, 50);
-
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                model.update();
-            }
-        }, 0, 10);
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -41,6 +28,14 @@ public class GameVisualizer extends JPanel {
         });
 
         setDoubleBuffered(true);
+    }
+
+    public void setUpdateRequest(Runnable updateRequest) {
+        this.updateRequest = updateRequest;
+    }
+
+    public void requestRedraw() {
+        repaint();
     }
 
     private void setTargetPosition(Point p) {

@@ -1,4 +1,4 @@
-package gui;
+package model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,12 +7,12 @@ public class RobotModel {
 
     private List<RobotModelListener> listeners = new ArrayList<>();
 
-    private volatile double x = 100;
-    private volatile double y = 100;
-    private volatile double direction = 0; // в радианах, 0 = вправо
+    private double x = 100;
+    private double y = 100;
+    private double direction = 0; // в радианах, 0 = вправо
 
-    private volatile double targetX = 150;
-    private volatile double targetY = 100;
+    private double targetX = 150;
+    private double targetY = 100;
 
     private static final double MAX_VELOCITY = 0.1;
     private static final double MAX_ANGULAR_VELOCITY = 0.001;
@@ -34,7 +34,7 @@ public class RobotModel {
     public void setTarget(double targetX, double targetY) {
         this.targetX = targetX;
         this.targetY = targetY;
-        notifyListeners();
+        notifyListeners();  // Оповещаем об изменении цели!
     }
 
     public boolean update() {
@@ -45,7 +45,6 @@ public class RobotModel {
         }
 
         double angleToTarget = angleTo(targetX, targetY);
-
         double angularVelocity = calculateOptimalAngularVelocity(angleToTarget);
 
         moveRobot(MAX_VELOCITY, angularVelocity, 10);
@@ -68,7 +67,6 @@ public class RobotModel {
         if (Math.abs(angleDiff) < 0.001) {
             return 0;
         }
-
 
         if (angleDiff > 0) {
             return MAX_ANGULAR_VELOCITY;

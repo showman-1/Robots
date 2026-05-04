@@ -3,9 +3,7 @@ package gui;
 import java.util.Properties;
 import javax.swing.JInternalFrame;
 
-
 public class WindowStateHelper {
-
 
     public void saveWindowState(Properties properties, JInternalFrame frame, String windowKey) {
         try {
@@ -29,7 +27,6 @@ public class WindowStateHelper {
         }
     }
 
-
     public void applyWindowState(Properties properties, JInternalFrame frame, String windowKey) {
         try {
             String xStr = properties.getProperty(windowKey + ".x");
@@ -44,6 +41,7 @@ public class WindowStateHelper {
                 frame.setSize(Integer.parseInt(widthStr), Integer.parseInt(heightStr));
             }
 
+
             String state = properties.getProperty(windowKey + ".state");
             if (state != null) {
                 switch (state) {
@@ -56,6 +54,7 @@ public class WindowStateHelper {
                         } catch (Exception e) {
                         }
                         break;
+
                 }
             }
 
