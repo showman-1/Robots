@@ -2,7 +2,6 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.text.DecimalFormat;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
@@ -11,10 +10,13 @@ import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
+import model.RobotModel;
+import model.RobotModelListener;
+
 public class RobotCoordinatesWindow extends JInternalFrame implements RobotModelListener {
 
     private JTextArea coordinatesArea;
-    private DecimalFormat df = new DecimalFormat("#.##");
+    private java.text.DecimalFormat df = new java.text.DecimalFormat("#.##");
     private RobotModel model;
 
     public RobotCoordinatesWindow(RobotModel model) {
@@ -37,8 +39,10 @@ public class RobotCoordinatesWindow extends JInternalFrame implements RobotModel
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         coordinatesArea = new JTextArea();
-        coordinatesArea.setEditable(false);
+        coordinatesArea.setEditable(false);          // Нельзя редактировать
+        coordinatesArea.setFocusable(false);         // Нельзя получить фокус (убирает курсор)
         coordinatesArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        coordinatesArea.setBackground(null);          // Прозрачный фон (как у панели)
 
         JPanel infoPanel = new JPanel(new BorderLayout());
         infoPanel.setBorder(new TitledBorder("Текущее положение"));
@@ -77,7 +81,6 @@ public class RobotCoordinatesWindow extends JInternalFrame implements RobotModel
 
     @Override
     public void onRobotStateChanged(double x, double y, double direction, double targetX, double targetY) {
-        // Этот метод вызывается из разных потоков, нужно обновлять UI в EDT
         java.awt.EventQueue.invokeLater(() -> {
             updateDisplay(x, y, direction, targetX, targetY);
         });

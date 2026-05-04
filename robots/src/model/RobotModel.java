@@ -1,42 +1,62 @@
-package gui;
+package model;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Модель робота - хранит состояние и управляет движением
+ * Не зависит от GUI, может использоваться в любом контексте
+ */
 public class RobotModel {
 
     private List<RobotModelListener> listeners = new ArrayList<>();
 
-    private volatile double x = 100;
-    private volatile double y = 100;
-    private volatile double direction = 0; // в радианах, 0 = вправо
+    private double x = 100;
+    private double y = 100;
+    private double direction = 0; // в радианах, 0 = вправо
 
-    private volatile double targetX = 150;
-    private volatile double targetY = 100;
+    private double targetX = 150;
+    private double targetY = 100;
 
     private static final double MAX_VELOCITY = 0.1;
     private static final double MAX_ANGULAR_VELOCITY = 0.001;
 
+    /**
+     * Добавляет слушателя (окно, которое хочет получать обновления)
+     */
     public void addListener(RobotModelListener listener) {
         listeners.add(listener);
     }
 
+    /**
+     * Удаляет слушателя
+     */
     public void removeListener(RobotModelListener listener) {
         listeners.remove(listener);
     }
 
+    /**
+     * Уведомляет всех слушателей об изменении состояния
+     */
     private void notifyListeners() {
         for (RobotModelListener listener : listeners) {
             listener.onRobotStateChanged(x, y, direction, targetX, targetY);
         }
     }
 
+    /**
+     * Устанавливает новую цель и оповещает слушателей
+     */
     public void setTarget(double targetX, double targetY) {
         this.targetX = targetX;
         this.targetY = targetY;
-        notifyListeners();
+        notifyListeners();  // Оповещаем об изменении цели!
     }
 
+    /**
+     * Обновляет позицию робота на основе текущей цели
+     * @return true если робот достиг цели
+     */
     public boolean update() {
         double distance = distanceToTarget();
 
@@ -45,7 +65,6 @@ public class RobotModel {
         }
 
         double angleToTarget = angleTo(targetX, targetY);
-
         double angularVelocity = calculateOptimalAngularVelocity(angleToTarget);
 
         moveRobot(MAX_VELOCITY, angularVelocity, 10);
@@ -68,7 +87,6 @@ public class RobotModel {
         if (Math.abs(angleDiff) < 0.001) {
             return 0;
         }
-
 
         if (angleDiff > 0) {
             return MAX_ANGULAR_VELOCITY;
@@ -127,6 +145,7 @@ public class RobotModel {
         return value;
     }
 
+    // Геттеры
     public double getX() { return x; }
     public double getY() { return y; }
     public double getDirection() { return direction; }

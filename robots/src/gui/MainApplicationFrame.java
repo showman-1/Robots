@@ -18,6 +18,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import log.Logger;
+import model.RobotModel;
 
 public class MainApplicationFrame extends JFrame {
 
@@ -30,7 +31,6 @@ public class MainApplicationFrame extends JFrame {
 
     public MainApplicationFrame() {
         stateManager = new WindowStateManager();
-        stateManager.loadFromFile();
 
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -49,6 +49,7 @@ public class MainApplicationFrame extends JFrame {
         coordinatesWindow = new RobotCoordinatesWindow(robotModel);
         coordinatesWindow.setSize(250, 180);
 
+        // Применяем сохраненные настройки (теперь они не перезаписываются)
         stateManager.applyWindowState(logWindow, "logWindow");
         stateManager.applyWindowState(gameWindow, "gameWindow");
         stateManager.applyWindowState(coordinatesWindow, "coordinatesWindow");
@@ -192,6 +193,6 @@ public class MainApplicationFrame extends JFrame {
         if (coordinatesWindow != null) {
             stateManager.saveWindowState(coordinatesWindow, "coordinatesWindow");
         }
-        stateManager.saveToFile();
+        stateManager.saveToFile();  // Сохраняем все в файл один раз
     }
 }

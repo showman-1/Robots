@@ -1,38 +1,29 @@
 package gui;
 
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.JPanel;
+
+import model.RobotModel;
+
+/**
+ * Визуализатор игры - только отображение, без логики движения
+ */
 public class GameVisualizer extends JPanel {
 
-    private final Timer timer = new Timer("GameTimer", true);
     private RobotModel model;
+    private Runnable updateRequest;  // для запроса перерисовки от контроллера
 
     public GameVisualizer(RobotModel model) {
         this.model = model;
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                EventQueue.invokeLater(() -> repaint());
-            }
-        }, 0, 50);
 
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                model.update();
-            }
-        }, 0, 10);
-
+        // Обработчик кликов мыши
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -41,6 +32,20 @@ public class GameVisualizer extends JPanel {
         });
 
         setDoubleBuffered(true);
+    }
+
+    /**
+     * Устанавливает callback для запроса перерисовки (вызывается контроллером)
+     */
+    public void setUpdateRequest(Runnable updateRequest) {
+        this.updateRequest = updateRequest;
+    }
+
+    /**
+     * Запрашивает перерисовку (вызывается из контроллера)
+     */
+    public void requestRedraw() {
+        repaint();
     }
 
     private void setTargetPosition(Point p) {
