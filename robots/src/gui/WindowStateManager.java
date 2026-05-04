@@ -32,6 +32,7 @@ public class WindowStateManager {
         saveToFile();
     }
 
+
     public void applyWindowState(JInternalFrame frame, String windowKey) {
         windowHelper.applyWindowState(properties, frame, windowKey);
     }
