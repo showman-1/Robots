@@ -1,11 +1,15 @@
 package gui;
 
+import config.WindowStateStore;
+import model.RobotModel;
+import log.Logger;
+import log.LogWindowSource;
+
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -17,22 +21,25 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import log.Logger;
-
 public class MainApplicationFrame extends JFrame {
-
     private final JDesktopPane desktopPane = new JDesktopPane();
-    private final ApplicationDependencies deps = new ApplicationDependencies();
-    private final WindowStateStore windowStateStore = deps.getWindowStateStore();
-    private final RobotModel robotModel = deps.getRobotModel();
+
+    // Зависимости внедряются извне
+    private final WindowStateStore windowStateStore;
+    private final RobotModel robotModel;
+    private final LogWindowSource logSource;
 
     private LogWindow logWindow;
     private GameWindow gameWindow;
     private RobotCoordinatesWindow coordinatesWindow;
+    private GameController gameController;
 
-    private javax.swing.Timer modelUpdateTimer;
+    // Конструктор с внедрением зависимостей
+    public MainApplicationFrame(WindowStateStore windowStateStore, RobotModel robotModel, LogWindowSource logSource) {
+        this.windowStateStore = windowStateStore;
+        this.robotModel = robotModel;
+        this.logSource = logSource;
 
-    public MainApplicationFrame() {
         windowStateStore.loadAllStates();
 
         int inset = 50;
@@ -43,14 +50,20 @@ public class MainApplicationFrame extends JFrame {
 
         setContentPane(desktopPane);
 
+        // Инициализация окон
         logWindow = createLogWindow();
-        gameWindow = new GameWindow(robotModel);
+        gameWindow = new GameWindow(); // <-- без параметров!
         coordinatesWindow = new RobotCoordinatesWindow();
 
-        // Подписываем окно координат на обновления модели
+        // Подписка координат на модель
         robotModel.addListener(coordinatesWindow);
 
-        // Применяем сохранённые состояния
+        // Создание контроллера игры и связывание его с визуализатором и моделью
+        gameController = new GameController(robotModel, gameWindow.getVisualizer());
+        gameWindow.setController(gameController); // <-- передаём контроллер в окно
+        gameController.start();
+
+        // Восстановление позиций окон
         windowStateStore.applyWindowState(logWindow, "logWindow");
         windowStateStore.applyWindowState(gameWindow, "gameWindow");
         windowStateStore.applyWindowState(coordinatesWindow, "coordinatesWindow");
@@ -59,7 +72,6 @@ public class MainApplicationFrame extends JFrame {
         addWindow(gameWindow);
         addWindow(coordinatesWindow);
 
-        // Располагаем окно координат в удобном месте
         coordinatesWindow.setLocation(10, 300);
 
         setJMenuBar(createMenuBar());
@@ -71,25 +83,15 @@ public class MainApplicationFrame extends JFrame {
                 exitApplication();
             }
         });
-
-        // Запускаем таймер для обновления модели
-        startModelUpdater();
-    }
-
-    private void startModelUpdater() {
-        modelUpdateTimer = new javax.swing.Timer(10, (e) -> {
-            robotModel.updateModel();
-        });
-        modelUpdateTimer.start();
     }
 
     protected LogWindow createLogWindow() {
-        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
+        LogWindow logWindow = new LogWindow(logSource);
         logWindow.setLocation(10, 10);
         logWindow.setSize(300, 250);
         logWindow.pack();
-        Logger.debug("Протокол работает");
-        Logger.debug("Робот готов к работе");
+        Logger.debug("Протокол работает ");
+        Logger.debug("Робот готов к работе ");
         return logWindow;
     }
 
@@ -108,10 +110,10 @@ public class MainApplicationFrame extends JFrame {
     }
 
     private JMenu createWindowsMenu() {
-        JMenu windowsMenu = new JMenu("Окна");
+        JMenu windowsMenu = new JMenu("Окна ");
         windowsMenu.setMnemonic(KeyEvent.VK_W);
 
-        JMenuItem showCoordinatesItem = new JMenuItem("Показать координаты");
+        JMenuItem showCoordinatesItem = new JMenuItem("Показать координаты ");
         showCoordinatesItem.addActionListener(e -> {
             coordinatesWindow.setVisible(true);
             try {
@@ -120,7 +122,7 @@ public class MainApplicationFrame extends JFrame {
         });
         windowsMenu.add(showCoordinatesItem);
 
-        JMenuItem showGameItem = new JMenuItem("Показать игровое поле");
+        JMenuItem showGameItem = new JMenuItem("Показать игровое поле ");
         showGameItem.addActionListener(e -> {
             gameWindow.setVisible(true);
             try {
@@ -129,7 +131,7 @@ public class MainApplicationFrame extends JFrame {
         });
         windowsMenu.add(showGameItem);
 
-        JMenuItem showLogItem = new JMenuItem("Показать протокол");
+        JMenuItem showLogItem = new JMenuItem("Показать протокол ");
         showLogItem.addActionListener(e -> {
             logWindow.setVisible(true);
             try {
@@ -142,23 +144,23 @@ public class MainApplicationFrame extends JFrame {
     }
 
     private JMenu createFileMenu() {
-        JMenu fileMenu = new JMenu("Файл");
+        JMenu fileMenu = new JMenu("Файл ");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         fileMenu.add(createExitMenuItem());
         return fileMenu;
     }
 
     private JMenuItem createExitMenuItem() {
-        JMenuItem exitMenuItem = new JMenuItem("Выход", KeyEvent.VK_X);
+        JMenuItem exitMenuItem = new JMenuItem("Выход ", KeyEvent.VK_X);
         exitMenuItem.addActionListener((event) -> exitApplication());
         return exitMenuItem;
     }
 
     private JMenu createLookAndFeelMenu() {
-        JMenu lookAndFeelMenu = new JMenu("Режим отображения");
+        JMenu lookAndFeelMenu = new JMenu("Режим отображения ");
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
-                "Управление режимом отображения приложения");
+                "Управление режимом отображения приложения ");
 
         lookAndFeelMenu.add(createSystemLookAndFeelMenuItem());
         lookAndFeelMenu.add(createCrossplatformLookAndFeelMenuItem());
@@ -167,7 +169,7 @@ public class MainApplicationFrame extends JFrame {
     }
 
     private JMenuItem createSystemLookAndFeelMenuItem() {
-        JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
+        JMenuItem systemLookAndFeel = new JMenuItem("Системная схема ", KeyEvent.VK_S);
         systemLookAndFeel.addActionListener((event) -> {
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             this.invalidate();
@@ -176,7 +178,7 @@ public class MainApplicationFrame extends JFrame {
     }
 
     private JMenuItem createCrossplatformLookAndFeelMenuItem() {
-        JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
+        JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема ", KeyEvent.VK_S);
         crossplatformLookAndFeel.addActionListener((event) -> {
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             this.invalidate();
@@ -185,10 +187,10 @@ public class MainApplicationFrame extends JFrame {
     }
 
     private JMenu createTestMenu() {
-        JMenu testMenu = new JMenu("Тесты");
+        JMenu testMenu = new JMenu("Тесты ");
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(
-                "Тестовые команды");
+                "Тестовые команды ");
 
         testMenu.add(createAddLogMessageMenuItem());
 
@@ -196,9 +198,9 @@ public class MainApplicationFrame extends JFrame {
     }
 
     private JMenuItem createAddLogMessageMenuItem() {
-        JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
+        JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог ", KeyEvent.VK_S);
         addLogMessageItem.addActionListener((event) -> {
-            Logger.debug("Новая строка");
+            Logger.debug("Новая строка ");
         });
         return addLogMessageItem;
     }
@@ -214,12 +216,12 @@ public class MainApplicationFrame extends JFrame {
     }
 
     private void exitApplication() {
-        Object[] options = {"Да", "Нет", "Отмена"};
+        Object[] options = {"Да ", "Нет ", "Отмена "};
 
         int result = JOptionPane.showOptionDialog(
                 this,
-                "Вы действительно хотите выйти из приложения?",
-                "Подтверждение выхода",
+                "Вы действительно хотите выйти из приложения? ",
+                "Подтверждение выхода ",
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
                 null,
@@ -227,11 +229,11 @@ public class MainApplicationFrame extends JFrame {
                 options[1]);
 
         if (result == JOptionPane.YES_OPTION) {
-            if (modelUpdateTimer != null) {
-                modelUpdateTimer.stop();
-            }
             saveWindowStates();
-            Logger.debug("Приложение завершает работу");
+            if (gameController != null) {
+                gameController.stop();
+            }
+            Logger.debug("Приложение завершает работу ");
             System.exit(0);
         }
     }

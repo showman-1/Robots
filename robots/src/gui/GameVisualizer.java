@@ -1,92 +1,43 @@
 package gui;
 
+import model.RobotModel;
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import javax.swing.JPanel;
 
 public class GameVisualizer extends JPanel implements RobotModel.RobotStateListener {
-
-    private final Timer m_timer = initTimer();
-    private final RobotModel model;
-
     private volatile double robotPositionX = 100;
     private volatile double robotPositionY = 100;
     private volatile double robotDirection = 0;
     private volatile int targetPositionX = 150;
     private volatile int targetPositionY = 100;
 
-    private static Timer initTimer() {
-        return new Timer("events generator", true);
-    }
-
-    public GameVisualizer(RobotModel model) {
-        this.model = model;
-
-        model.addListener(this);
-
-        updateFromModel();
-
-        m_timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                onRedrawEvent();
-            }
-        }, 0, 50);
-
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                model.setTargetPosition(e.getPoint().x, e.getPoint().y);
-            }
-        });
+    public GameVisualizer() {
         setDoubleBuffered(true);
-    }
-
-    private void updateFromModel() {
-        robotPositionX = model.getRobotPositionX();
-        robotPositionY = model.getRobotPositionY();
-        robotDirection = model.getRobotDirection();
-        targetPositionX = model.getTargetPositionX();
-        targetPositionY = model.getTargetPositionY();
     }
 
     @Override
     public void onRobotStateChanged(double x, double y, double direction, int targetX, int targetY) {
-        robotPositionX = x;
-        robotPositionY = y;
-        robotDirection = direction;
-        targetPositionX = targetX;
-        targetPositionY = targetY;
+        this.robotPositionX = x;
+        this.robotPositionY = y;
+        this.robotDirection = direction;
+        this.targetPositionX = targetX;
+        this.targetPositionY = targetY;
         repaint();
     }
 
-    protected void setTargetPosition(Point p) {
-        model.setTargetPosition(p.x, p.y);
-    }
-
-    protected void onRedrawEvent() {
-        EventQueue.invokeLater(this::repaint);
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        drawRobot(g2d, round(robotPositionX), round(robotPositionY), robotDirection);
+        drawTarget(g2d, targetPositionX, targetPositionY);
     }
 
     private static int round(double value) {
         return (int)(value + 0.5);
-    }
-
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-        Graphics2D g2d = (Graphics2D)g;
-        drawRobot(g2d, round(robotPositionX), round(robotPositionY), robotDirection);
-        drawTarget(g2d, targetPositionX, targetPositionY);
     }
 
     private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2) {
@@ -121,4 +72,3 @@ public class GameVisualizer extends JPanel implements RobotModel.RobotStateListe
         drawOval(g, x, y, 5, 5);
     }
 }
-// комм

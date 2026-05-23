@@ -1,21 +1,41 @@
 package gui;
 
+import model.RobotModel;
 import java.awt.BorderLayout;
-
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
 public class GameWindow extends JInternalFrame {
+    private final GameVisualizer visualizer;
+    private GameController controller; // <-- добавили поле
 
-    private final GameVisualizer m_visualizer;
-
-    public GameWindow(RobotModel model) {
+    public GameWindow() {
         super("Игровое поле", true, true, true, true);
-        m_visualizer = new GameVisualizer(model);
+        this.visualizer = new GameVisualizer(); // <-- без параметров!
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(m_visualizer, BorderLayout.CENTER);
+        panel.add(visualizer, BorderLayout.CENTER);
         getContentPane().add(panel);
         setSize(600, 500);
+
+        // Добавляем слушатель мыши, который будет вызывать контроллер
+        visualizer.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (controller != null) {
+                    controller.handleMouseClick(e.getPoint());
+                }
+            }
+        });
+    }
+
+    // Метод для внедрения контроллера
+    public void setController(GameController controller) {
+        this.controller = controller;
+    }
+
+    public GameVisualizer getVisualizer() {
+        return visualizer;
     }
 }
-
