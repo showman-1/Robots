@@ -1,24 +1,19 @@
 package log;
 
-public class LogEntry
-{
-    private LogLevel m_logLevel;
-    private String m_strMessage;
-    
-    public LogEntry(LogLevel logLevel, String strMessage)
-    {
-        m_strMessage = strMessage;
-        m_logLevel = logLevel;
+public class LogEntry {
+    private final String message;
+    private final long timestamp;
+
+    public LogEntry(String message) {
+        this.message = message;
+        this.timestamp = System.currentTimeMillis();
     }
-    
-    public String getMessage()
-    {
-        return m_strMessage;
+
+    public String getMessage() {
+        return message;
     }
-    
-    public LogLevel getLevel()
-    {
-        return m_logLevel;
+
+    public long getTimestamp() {
+        return timestamp;
     }
 }
-
