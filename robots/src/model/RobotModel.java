@@ -37,11 +37,11 @@ public class RobotModel {
         notifyListeners();  // Оповещаем об изменении цели!
     }
 
-    public boolean update() {
+    public void update() {
         double distance = distanceToTarget();
 
         if (distance < 0.5) {
-            return true;
+            return;
         }
 
         double angleToTarget = angleTo(targetX, targetY);
@@ -51,7 +51,6 @@ public class RobotModel {
 
         notifyListeners();
 
-        return false;
     }
 
     private double calculateOptimalAngularVelocity(double targetAngle) {
@@ -87,7 +86,7 @@ public class RobotModel {
         return normalizeAngle(Math.atan2(diffY, diffX));
     }
 
-    private double normalizeAngle(double angle) {
+    private static double normalizeAngle(double angle) {
         while (angle < 0) {
             angle += 2 * Math.PI;
         }
@@ -101,7 +100,7 @@ public class RobotModel {
         velocity = applyLimits(velocity, 0, MAX_VELOCITY);
         angularVelocity = applyLimits(angularVelocity, -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
 
-        if (Math.abs(angularVelocity) < 0.00001) {
+        if (Math.abs(angularVelocity) < 0.000001) {
             x += velocity * duration * Math.cos(direction);
             y += velocity * duration * Math.sin(direction);
         } else {
@@ -121,8 +120,7 @@ public class RobotModel {
 
     private double applyLimits(double value, double min, double max) {
         if (value < min) return min;
-        if (value > max) return max;
-        return value;
+        return Math.min(value, max);
     }
 
     public double getX() { return x; }

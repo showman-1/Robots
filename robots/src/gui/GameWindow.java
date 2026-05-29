@@ -11,15 +11,16 @@ import model.RobotModel;
 public class GameWindow extends JInternalFrame {
 
     private final GameVisualizer visualizer;
-    private GameController controller;
+    private final GameController controller;
 
     public GameWindow(RobotModel model) {
         super("Игровое поле", true, true, true, true);
-        visualizer = new GameVisualizer(model);
 
-        controller = new GameController(model, () -> visualizer.requestRedraw());
+        this.visualizer = new GameVisualizer(null, model);
 
-        visualizer.setUpdateRequest(() -> visualizer.requestRedraw());
+        this.controller = new GameController(model, () -> visualizer.requestRedraw());
+
+        this.visualizer.setController(this.controller);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(visualizer, BorderLayout.CENTER);

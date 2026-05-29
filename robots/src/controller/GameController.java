@@ -18,18 +18,22 @@ public class GameController {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                model.update();
+            }
+        }, 0, 10);
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
                 if (redrawCallback != null) {
                     java.awt.EventQueue.invokeLater(redrawCallback);
                 }
             }
         }, 0, 50);
+    }
 
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                model.update();
-            }
-        }, 0, 10);
+    public void setTarget(double x, double y) {
+        model.setTarget(x, y);
     }
 
     public void stop() {
