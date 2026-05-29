@@ -71,37 +71,71 @@ public class BoundedCircularList<T> extends AbstractList<T> {
 
     @Override
     public Iterator<T> iterator() {
+        // Шаг 1: Быстро копируем ТОЛЬКО необходимые метаданные под блокировкой
         lock.readLock().lock();
+        int currentSize;
+        int currentHead;
         try {
-            Object[] snapshot = new Object[size];
-            for (int i = 0; i < size; i++) {
-                snapshot[i] = buffer[(head + i) % capacity];
-            }
-            return new SnapshotIterator<>(snapshot);
+            currentSize = this.size;
+            currentHead = this.head;
         } finally {
             lock.readLock().unlock();
         }
+
+        // Шаг 2: Делаем медленную копию данных ВНЕ блокировки (O(n) без блокировки!)
+        Object[] snapshot = new Object[currentSize];
+        lock.readLock().lock();
+        try {
+            // Проверяем, что размер не изменился (на всякий случай)
+            if (this.size != currentSize) {
+                // Если изменился — начинаем заново (редкий случай)
+                currentSize = this.size;
+                currentHead = this.head;
+                snapshot = new Object[currentSize];
+            }
+            for (int i = 0; i < currentSize; i++) {
+                snapshot[i] = buffer[(currentHead + i) % capacity];
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        return new SnapshotIterator<>(snapshot);
     }
 
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
+        // Аналогично: быстро получаем метаданные
         lock.readLock().lock();
+        int currentSize;
+        int currentHead;
         try {
-            if (fromIndex < 0 || toIndex > size || fromIndex > toIndex) {
-                throw new IndexOutOfBoundsException();
-            }
-            int len = toIndex - fromIndex;
-            Object[] sub = new Object[len];
-            for (int i = 0; i < len; i++) {
-                sub[i] = buffer[(head + fromIndex + i) % capacity];
-            }
-            return new AbstractList<T>() {
-                @Override public T get(int i) { return (T) sub[i]; }
-                @Override public int size() { return len; }
-            };
+            currentSize = this.size;
+            currentHead = this.head;
         } finally {
             lock.readLock().unlock();
         }
+
+        if (fromIndex < 0 || toIndex > currentSize || fromIndex > toIndex) {
+            throw new IndexOutOfBoundsException();
+        }
+
+        // Копируем данные
+        int len = toIndex - fromIndex;
+        Object[] sub = new Object[len];
+        lock.readLock().lock();
+        try {
+            for (int i = 0; i < len; i++) {
+                sub[i] = buffer[(currentHead + fromIndex + i) % capacity];
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        return new AbstractList<T>() {
+            @Override public T get(int i) { return (T) sub[i]; }
+            @Override public int size() { return len; }
+        };
     }
 
     private static class SnapshotIterator<T> implements Iterator<T> {
