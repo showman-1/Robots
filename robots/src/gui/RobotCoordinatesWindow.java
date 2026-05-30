@@ -16,12 +16,11 @@ import model.RobotModelListener;
 public class RobotCoordinatesWindow extends JInternalFrame implements RobotModelListener {
 
     private JTextArea coordinatesArea;
-    private java.text.DecimalFormat df = new java.text.DecimalFormat("#.##");
-    private RobotModel model;
+    private final java.text.DecimalFormat df = new java.text.DecimalFormat("#.##");
 
     public RobotCoordinatesWindow(RobotModel model) {
         super("Координаты робота", true, true, true, true);
-        this.model = model;
+
 
         setSize(250, 200);
         setLocation(320, 10);

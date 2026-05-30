@@ -10,36 +10,40 @@ import java.awt.geom.AffineTransform;
 
 import javax.swing.JPanel;
 
+import controller.GameController;
 import model.RobotModel;
 
 public class GameVisualizer extends JPanel {
 
+    private GameController controller;
     private RobotModel model;
-    private Runnable updateRequest;
 
-    public GameVisualizer(RobotModel model) {
+    public GameVisualizer(GameController controller, RobotModel model) {
+        this.controller = controller;
         this.model = model;
 
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                setTargetPosition(e.getPoint());
+                handleMouseClick(e.getPoint());
             }
         });
 
         setDoubleBuffered(true);
     }
 
-    public void setUpdateRequest(Runnable updateRequest) {
-        this.updateRequest = updateRequest;
+    public void setController(GameController controller) {
+        this.controller = controller;
+    }
+
+    private void handleMouseClick(Point p) {
+        if (controller != null) {
+            controller.setTarget(p.x, p.y);
+        }
     }
 
     public void requestRedraw() {
         repaint();
-    }
-
-    private void setTargetPosition(Point p) {
-        model.setTarget(p.x, p.y);
     }
 
     @Override
